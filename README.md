@@ -311,4 +311,4 @@ This app is a personal organization aid, not a clinical decision tool, medicatio
 
 ---
 
-Maintained by Mikheil Kakabadze.
+Maintained by [MIkheil Kakabadze](https://www.linkedin.com/in/mikheil-kakabadze)
