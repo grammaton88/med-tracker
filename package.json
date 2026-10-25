@@ -1,0 +1,20 @@
+{
+  "name": "med-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run typecheck && esbuild src/app.ts --bundle --target=es2020 --outfile=public/app.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vercel/kv": "^2.0.0",
+    "nodemailer": "^10.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "@vercel/node": "^5.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

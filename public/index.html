@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#e8edf3">
+  <title>წამლების აღრიცხვა</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #e8edf3;
+      --surface: #e9eef4;
+      --text: #172b3a;
+      --muted: #465d70;
+      --border: #d4dde7;
+      --primary: #087f74;
+      --primary-dark: #05665e;
+      --primary-soft: #d8f0ec;
+      --danger: #a32119;
+      --danger-soft: #f9e4e2;
+      --warning: #7a4200;
+      --warning-soft: #faedcf;
+      --success: #11633f;
+      --success-soft: #dcefe3;
+      --focus: #1769aa;
+      --neu-raised: 7px 7px 16px #c6ced8, -7px -7px 16px #fff;
+      --neu-raised-small: 4px 4px 9px #c6ced8, -4px -4px 9px #fff;
+      --neu-inset: inset 4px 4px 8px #c6ced8, inset -4px -4px 8px #fff;
+      --control-height: 48px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px 20px calc(104px + env(safe-area-inset-bottom));
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .app-shell { width: min(100%, 820px); margin: 0 auto; }
+    .field-label { display: block; margin-bottom: 6px; font-weight: 650; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 0 0 18px; }
+    h1 { margin: 0; font-size: clamp(1.55rem, 3vw, 1.95rem); letter-spacing: -.025em; line-height: 1.2; }
+    .subtitle { margin: 6px 0 0; color: var(--muted); font-size: .92rem; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .sync-state { min-height: 1.4em; margin: 0 0 17px; padding: 11px 14px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-inset); color: var(--muted); font-size: .86rem; }
+    .tabs { display: flex; gap: 7px; margin-bottom: 22px; padding: 8px; border: 0; border-radius: 16px; background: var(--bg); box-shadow: var(--neu-inset); }
+    .tab {
+      flex: 1; min-width: 0; min-height: var(--control-height); padding: 8px 12px; border: 0; border-radius: 11px;
+      background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: box-shadow .18s ease, color .18s ease, background .18s ease;
+    }
+    .tab.active { background: var(--surface); color: var(--primary-dark); box-shadow: var(--neu-raised-small); }
+    .dashboard-calendar, .progress, .next-dose, .med-card, .edit-card, .notes-area, .history-card, .important-date {
+      border: 0; border-radius: 16px; background: var(--surface); box-shadow: var(--neu-raised);
+    }
+    .dashboard-calendar { width: min(100%, 440px); margin: 0 auto 16px; padding: 16px; border-radius: 20px; }
+    .calendar-header { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .calendar-header strong { text-align: center; font-size: 1.08rem; }
+    .calendar-nav { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-raised-small); color: var(--primary-dark); font-size: 1.4rem; cursor: pointer; }
+    .calendar-nav:hover, .btn-secondary:hover, .icon-btn:hover { color: var(--primary-dark); }
+    .calendar-nav:active, .btn-secondary:active, .icon-btn:active { box-shadow: var(--neu-inset); }
+    .calendar-selection { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; margin-bottom: 6px; }
+    .calendar-selection p { margin: 0; font-size: .88rem; font-weight: 700; }
+    .dashboard-calendar .calendar-grid { gap: 4px; }
+    .dashboard-calendar .calendar-weekday { min-height: 30px; }
+    .dashboard-calendar .calendar-day { border-radius: 10px; }
+    .clock { margin: 0 0 8px; color: var(--muted); text-align: right; font-size: .85rem; font-variant-numeric: tabular-nums; }
+    .progress { padding: 20px; border-radius: 18px; background: #087f74; box-shadow: 7px 7px 16px #c6ced8, -7px -7px 16px #fff; color: #fff; }
+    .progress-head { display: flex; justify-content: space-between; gap: 12px; color: #fff; font-size: 1.02rem; font-weight: 700; }
+    #progress-text { color: #fff; font-size: 1.25rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+    .progress-detail { color: #e5fffa; font-size: .88rem; font-weight: 550; }
+    .progress-bar { height: 11px; margin-top: 13px; overflow: hidden; border-radius: 99px; background: #075f59; }
+    .progress-fill { height: 100%; border-radius: inherit; background: #baf46d; transition: width .2s ease; }
+    .next-dose { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding: 17px; background: #d9e8ff; box-shadow: var(--neu-raised); }
+    .next-dose-icon { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 14px; background: #087f74; box-shadow: 4px 4px 8px #aebed4, -4px -4px 8px #fff; color: #fff; font-weight: 800; }
+    .next-dose-label { margin: 0; color: var(--primary-dark); font-size: .8rem; font-weight: 750; letter-spacing: .03em; text-transform: uppercase; }
+    .next-dose-name { margin: 2px 0 0; font-weight: 750; }
+    .next-dose-detail { margin: 1px 0 0; color: var(--muted); font-size: .88rem; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 26px 0 10px; font-size: 1.08rem; font-weight: 780; }
+    .time-heading { margin: 20px 2px 9px; color: var(--muted); font-size: .88rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .med-card, .edit-card { margin-bottom: 13px; padding: 17px; }
+    .med-card[data-status="taken"] { background: #dcefe3; box-shadow: 6px 6px 14px #bfd0c4, -6px -6px 14px #f8fff9; }
+    .med-card[data-status="overdue"] { background: #f6e3e1; box-shadow: 6px 6px 14px #d4c2c1, -6px -6px 14px #fff; }
+    .med-card[data-status="due"], .med-card[data-status="upcoming"] { background: #f7eddb; box-shadow: 6px 6px 14px #d5cbb9, -6px -6px 14px #fff; }
+    .med-header { display: flex; align-items: flex-start; gap: 12px; }
+    .med-info { flex: 1; min-width: 0; }
+    .med-name { font-size: 1rem; font-weight: 750; line-height: 1.35; }
+    .med-dose { margin-top: 3px; color: var(--text); font-weight: 600; }
+    .med-note, .med-extra { margin-top: 3px; color: var(--muted); font-size: .87rem; }
+    .dose-time { color: var(--primary-dark); font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .status-tag { display: inline-flex; align-items: center; min-height: 25px; margin-top: 7px; padding: 2px 8px; border-radius: 99px; font-size: .76rem; font-weight: 750; }
+    .status-tag.due, .status-tag.upcoming { background: #f5d98f; color: #593300; }
+    .status-tag.overdue { background: #f1c4c0; color: #761b15; }
+    .status-tag.taken { background: #bfe5ca; color: #104e32; }
+    .status-tag.skipped { background: #d6dfe8; color: #263a4a; }
+    .status-tag.snoozed { background: #cbdcff; color: #183d7a; }
+    .dose-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: 8px; margin: 13px 0 0 56px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: var(--control-height);
+      padding: 9px 14px; border: 0; border-radius: 12px; font-weight: 750; line-height: 1.25; cursor: pointer; box-shadow: var(--neu-raised-small); transition: box-shadow .15s ease, transform .15s ease, background .15s ease;
+    }
+    .btn:active { transform: translateY(1px); box-shadow: var(--neu-inset); }
+    .btn:disabled, .icon-btn:disabled { cursor: not-allowed; opacity: .48; }
+    .btn-primary { background: #087f74; color: #fff; box-shadow: 5px 5px 10px #c2cbd5, -5px -5px 10px #fff; }
+    .btn-primary:hover { background: #06665e; }
+    .btn-secondary { background: var(--surface); color: var(--text); }
+    .btn-danger { background: #f4e4e2; color: #8b2019; box-shadow: 4px 4px 9px #cbbfbe, -4px -4px 9px #fff; }
+    .btn-small { min-height: var(--control-height); padding: 8px 11px; font-size: .9rem; }
+    .icon-btn { display: inline-grid; width: var(--control-height); height: var(--control-height); flex: 0 0 var(--control-height); place-items: center; border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-raised-small); cursor: pointer; }
+    .edit-icon-btn { color: var(--primary-dark); }
+    .edit-icon-btn:hover { color: var(--primary); box-shadow: var(--neu-inset); }
+    .edit-icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .edit-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .edit-actions { display: flex; flex-direction: column; gap: 5px; }
+    .move-btn { min-width: var(--control-height); min-height: var(--control-height); color: var(--primary-dark); }
+    .edit-card.dragging { opacity: .5; }
+    .edit-card.drag-over { border: 2px dashed var(--primary); }
+    .field { margin: 0 0 13px; }
+    .field label { display: block; margin-bottom: 5px; font-size: .9rem; font-weight: 650; }
+    input, select, textarea {
+      width: 100%; min-width: 0; min-height: var(--control-height); padding: 10px 12px; border: 0; border-radius: 12px;
+      background: var(--surface); box-shadow: var(--neu-inset); color: var(--text); color-scheme: light;
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #1769aa66; }
+    input::placeholder, textarea::placeholder { color: #5a6b7a; opacity: 1; }
+    .time-picker-control { display: flex; min-width: 0; align-items: center; gap: 8px; }
+    .time-picker-control input { width: 0; flex: 1; cursor: pointer; font-variant-numeric: tabular-nums; }
+    .time-trigger { color: var(--primary-dark); }
+    .time-trigger svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .date-label { display: inline-flex; min-height: var(--control-height); align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-raised-small); color: var(--text); cursor: pointer; }
+    .date-label:hover { color: var(--primary-dark); box-shadow: var(--neu-inset); }
+    .date-label svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: var(--primary-dark); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .date-picker-control { display: flex; min-width: 0; align-items: center; gap: 8px; }
+    .date-picker-control input { width: 0; flex: 1; cursor: pointer; }
+    .calendar-trigger { color: var(--primary-dark); }
+    .calendar-trigger svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .calendar-overlay { position: fixed; z-index: 60; inset: 0; display: none; align-items: center; justify-content: center; padding: 16px; background: rgb(10 22 38 / 48%); }
+    .calendar-overlay.show { display: flex; }
+    .calendar-dialog { width: min(100%, 370px); padding: 18px; border-radius: 20px; background: var(--surface); box-shadow: 12px 12px 28px #aeb8c4, -12px -12px 28px #fff; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+    .calendar-weekday { display: grid; min-height: 34px; place-items: center; color: var(--muted); font-size: .76rem; font-weight: 750; }
+    .calendar-day, .calendar-empty { display: grid; min-width: 0; aspect-ratio: 1; place-items: center; }
+    .calendar-day { border: 0; border-radius: 11px; background: var(--surface); box-shadow: var(--neu-raised-small); color: var(--text); font-weight: 650; cursor: pointer; }
+    .calendar-day:hover { color: var(--primary-dark); box-shadow: var(--neu-inset); }
+    .calendar-day.today { outline: 2px solid var(--primary); outline-offset: -3px; }
+    .calendar-day.selected { background: var(--primary); box-shadow: inset 2px 2px 5px #055e56; color: #fff; }
+    .time-overlay { position: fixed; z-index: 61; inset: 0; display: none; align-items: center; justify-content: center; padding: 16px; background: rgb(10 22 38 / 48%); }
+    .time-overlay.show { display: flex; }
+    .time-dialog { width: min(100%, 360px); padding: 20px; border-radius: 20px; background: var(--surface); box-shadow: 12px 12px 28px #aeb8c4, -12px -12px 28px #fff; }
+    .time-dialog h2 { margin: 0 0 16px; font-size: 1.15rem; }
+    .time-selectors { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+    .time-selectors select { text-align: center; font-size: 1.25rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .time-separator { font-size: 1.3rem; font-weight: 800; }
+    .time-dialog .btn-row { margin-top: 18px; }
+    .edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .times-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 7px 0 12px; }
+    .time-chip { display: flex; align-items: center; gap: 7px; padding: 4px 6px 4px 11px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-raised-small); font-weight: 700; }
+    .time-chip button { width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--danger); cursor: pointer; }
+    .time-chip button:hover { box-shadow: var(--neu-inset); }
+    .add-time-row { display: flex; gap: 8px; }
+    .add-time-row input { flex: 1; }
+    .add-time-row .time-picker-control { flex: 1; }
+    .add-time-row .btn { flex: 0 0 auto; min-width: 170px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+    .btn-row > .btn { flex: 1 1 190px; }
+    .notes-area { padding: 16px; }
+    textarea { width: 100%; min-height: 160px; resize: vertical; }
+    .muted { color: var(--muted); font-size: .88rem; }
+    .important-dates { display: grid; gap: 9px; margin-top: 12px; }
+    .important-date { padding: 14px 16px; }
+    .important-date strong { display: block; }
+    .important-date span { color: var(--muted); font-size: .88rem; }
+    .history-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+    .history-controls .field { flex: 1; min-width: 170px; margin: 0; }
+    .history-controls > .btn { flex: 0 1 180px; }
+    .history-card { margin-top: 14px; padding: 16px; }
+    .history-summary { color: var(--muted); font-size: .9rem; }
+    .history-item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .history-item:last-child { border-bottom: 0; }
+    .empty { padding: 26px 16px; border: 0; border-radius: 16px; background: var(--surface); box-shadow: var(--neu-inset); color: var(--muted); text-align: center; }
+    .footer {
+      position: fixed; z-index: 20; right: 0; bottom: 0; left: 0; display: flex; justify-content: center; gap: 9px;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      background: var(--bg); box-shadow: 0 -5px 14px rgb(175 187 200 / 42%);
+    }
+    .footer button { width: min(100%, 190px); }
+    .footer.hidden { display: none; }
+    .modal-overlay { position: fixed; z-index: 50; inset: 0; display: none; align-items: center; justify-content: center; padding: 16px; background: rgb(10 22 38 / 48%); }
+    .modal-overlay.show { display: flex; }
+    .modal { width: min(100%, 520px); max-height: 92vh; overflow-y: auto; padding: 20px; border: 0; border-radius: 20px; background: var(--surface); box-shadow: 12px 12px 28px #aeb8c4, -12px -12px 28px #fff; }
+    .modal h2 { margin: 0 0 16px; font-size: 1.2rem; }
+    .confirmation-modal { width: min(100%, 440px); }
+    .confirmation-modal p { margin: 0; color: var(--muted); }
+    .confirmation-actions { justify-content: flex-end; }
+    .confirmation-actions .btn { flex: 1 1 150px; }
+    .modal-close { float: right; width: var(--control-height); height: var(--control-height); border: 0; border-radius: 12px; background: var(--surface); box-shadow: var(--neu-raised-small); color: var(--muted); font-size: 1.4rem; cursor: pointer; }
+    .modal-close:hover { background: #edf3f8; }
+    .field-error { color: var(--danger); font-size: .85rem; }
+    @media (max-width: 520px) {
+      body { padding: 18px 12px calc(160px + env(safe-area-inset-bottom)); }
+      .app-header { align-items: flex-start; }
+      .header-actions { gap: 6px; }
+      .sync-state { margin-bottom: 13px; padding: 9px 11px; }
+      .tabs {
+        position: fixed; z-index: 30; right: 0; bottom: 0; left: 0; gap: 2px; margin: 0;
+        padding: 7px 10px calc(7px + env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0;
+        background: rgb(255 255 255 / 97%); box-shadow: 0 -4px 16px rgb(23 32 51 / 8%);
+      }
+      .tab { padding: 7px 4px; font-size: .82rem; }
+      .footer { bottom: calc(60px + env(safe-area-inset-bottom)); padding-top: 7px; padding-bottom: 7px; }
+      .date-nav >       .edit-row { grid-template-columns: 1fr; gap: 0; }
+      .dose-actions { margin-left: 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 124px), 1fr)); }
+      .edit-toolbar { align-items: stretch; flex-direction: column; gap: 4px; }
+      .edit-toolbar .btn { width: 100%; }
+      .add-time-row .btn { min-width: 0; }
+      .history-controls > .btn { flex: 1 1 150px; }
+      .med-card, .edit-card { padding: 13px; }
+      .footer { gap: 7px; padding-right: 10px; padding-left: 10px; }
+      .footer .btn { min-height: 44px; padding: 8px 6px; font-size: .84rem; }
+      .modal-overlay { align-items: flex-end; padding: 0; }
+      .modal { max-height: 93vh; padding-bottom: calc(20px + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0; }
+      .calendar-overlay { align-items: flex-end; padding: 0; }
+      .calendar-dialog { width: 100%; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
+      .time-overlay { align-items: flex-end; padding: 0; }
+      .time-dialog { width: 100%; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
+    }
+    @media (max-width: 360px) {
+      body { padding-right: 10px; padding-left: 10px; }
+      .tabs { padding-right: 6px; padding-left: 6px; }
+      .tab { padding-right: 2px; padding-left: 2px; font-size: .76rem; }
+      .date-nav >       .dose-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .dose-actions .btn { padding-right: 6px; padding-left: 6px; font-size: .82rem; }
+      .add-time-row { align-items: stretch; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell" id="app-shell">
+    <header class="app-header">
+      <div>
+        <h1>წამლების აღრიცხვა</h1>
+        <p class="subtitle">პირადი გრაფიკი და მიღების ისტორია</p>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="export-data" type="button" aria-label="მონაცემების ჩამოტვირთვა" title="მონაცემების ჩამოტვირთვა">↓</button>
+      </div>
+    </header>
+    <div class="sync-state" id="sync-status" role="status" aria-live="polite">სიის ჩატვირთვა...</div>
+
+    <nav class="tabs" role="tablist" aria-label="აპლიკაციის სექციები">
+      <button class="tab active" type="button" role="tab" aria-selected="true" aria-controls="today-view" data-tab="today">დღეს</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="meds-view" data-tab="meds">წამლები</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="history-view" data-tab="history">ისტორია</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="notes-view" data-tab="notes">შენიშვნები</button>
+    </nav>
+
+    <section id="today-view" role="tabpanel">
+      <p class="clock" id="live-clock"></p>
+      <div class="dashboard-calendar" aria-label="ქართული კალენდარი">
+        <div class="calendar-header">
+          <button class="calendar-nav" id="dashboard-calendar-previous" type="button" aria-label="წინა თვე">‹</button>
+          <strong id="dashboard-calendar-month"></strong>
+          <button class="calendar-nav" id="dashboard-calendar-next" type="button" aria-label="შემდეგი თვე">›</button>
+        </div>
+        <div class="calendar-selection">
+          <p id="current-date-text" aria-live="polite"></p>
+          <button class="btn btn-secondary btn-small" id="dashboard-today" type="button">დღეს</button>
+        </div>
+        <div class="calendar-grid" id="dashboard-calendar-grid" role="grid" aria-label="კალენდრის დღეები"></div>
+      </div>
+      <div class="progress">
+        <div class="progress-head">
+          <span>დღიური გეგმა</span>
+          <span id="progress-text">0 / 0</span>
+        </div>
+        <div class="progress-detail" id="progress-detail">მიღებულია 0 · გამოტოვებულია 0</div>
+        <div class="progress-bar" role="progressbar" aria-label="დღიური პროგრესი" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="next-dose" id="next-dose" hidden></div>
+      <h2 class="section-heading">დღის დოზები</h2>
+      <div id="today-list"></div>
+    </section>
+
+    <section id="meds-view" role="tabpanel" hidden>
+      <div class="edit-toolbar">
+        <p class="muted">გრაფიკის ცვლილებები სინქრონიზდება სერვერზე შენახვისას.</p>
+        <button class="btn btn-primary btn-small" id="add-med-btn" type="button">+ დამატება</button>
+      </div>
+      <div id="edit-list"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="save-server" type="button">გრაფიკის შენახვა</button>
+        <button class="btn btn-secondary" id="reset-defaults" type="button">საწყისი გრაფიკის აღდგენა</button>
+      </div>
+    </section>
+
+    <section id="history-view" role="tabpanel" hidden>
+      <h2 class="section-heading" style="margin-top:0">მიღების ისტორია</h2>
+      <div class="history-controls">
+        <div class="field">
+          <label for="history-date">თარიღი</label>
+          <input id="history-date" type="date">
+        </div>
+        <button class="btn btn-secondary" id="load-history" type="button">დღის ნახვა</button>
+      </div>
+      <div class="history-card" id="history-list"></div>
+      <p class="muted">ისტორია სერვერზე ინახება და ამ მისამართის მქონე ნებისმიერ პირს შეუძლია ნახოს და შეცვალოს.</p>
+    </section>
+
+    <section id="notes-view" role="tabpanel" hidden>
+      <div class="notes-area">
+        <label class="field-label" for="notes-text">პირადი შენიშვნები</label>
+        <textarea id="notes-text" placeholder="შენიშვნები, ექიმის რეკომენდაციები..."></textarea>
+        <p class="muted">შენიშვნები ავტომატურად ინახება მხოლოდ ამ მოწყობილობაზე.</p>
+      </div>
+      <h2 class="section-heading">მნიშვნელოვანი თარიღები</h2>
+      <div id="important-dates" class="important-dates"></div>
+      <div class="edit-row" style="margin-top:12px">
+        <div class="field"><label for="date-label">თარიღის დასახელება</label><input id="date-label" type="text" placeholder="მაგალითად: ექიმთან ვიზიტი"></div>
+        <div class="field"><label for="date-value">თარიღი</label><input id="date-value" type="date"></div>
+      </div>
+      <div class="add-time-row">
+        <input id="date-time" type="text" aria-label="თარიღის დრო (არასავალდებულო)">
+        <button class="btn btn-secondary" id="add-date" type="button">თარიღის დამატება</button>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" id="save-dates" type="button">ყველა ცვლილების შენახვა</button></div>
+      <p class="muted">მიღების წესის ან დოზის ცვლილება ექიმის რჩევით შეიტანეთ.</p>
+    </section>
+
+    <footer class="footer" id="today-actions">
+      <button id="undo-dose" class="btn btn-secondary" type="button" hidden>გაუქმება</button>
+      <button id="reset-day" class="btn btn-danger" type="button">დღის გასუფთავება</button>
+    </footer>
+  </main>
+
+  <div class="modal-overlay" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" type="button" aria-label="დახურვა">×</button>
+      <h2 id="modal-title">წამლის რედაქტირება</h2>
+      <div class="field">
+        <label for="m-name">დასახელება</label>
+        <input type="text" id="m-name" autocomplete="off" required aria-describedby="m-name-error" placeholder="მაგალითად: ესტროფემი 2 მგ">
+        <p class="field-error" id="m-name-error" role="alert" hidden>დასახელება სავალდებულოა</p>
+      </div>
+      <div class="edit-row">
+        <div class="field"><label for="m-dose">დოზა</label><input type="text" id="m-dose" placeholder="მაგალითად: 1 ტაბლეტი"></div>
+        <div class="field"><label for="m-note">შენიშვნა / მიღების წესი</label><input type="text" id="m-note" placeholder="მაგალითად: საკვებთან ერთად"></div>
+      </div>
+      <div class="edit-row">
+        <div class="field">
+          <label for="m-cont">კურსის ტიპი</label>
+          <select id="m-cont"><option value="1">უწყვეტი</option><option value="0">დროებითი კურსი</option></select>
+        </div>
+        <div class="field">
+          <label for="m-start">კურსის დაწყება (არასავალდებულო)</label>
+          <input type="date" id="m-start">
+        </div>
+      </div>
+      <div class="field">
+        <label for="m-end">კურსის დასრულება (არასავალდებულო)</label>
+        <input type="date" id="m-end">
+      </div>
+      <div class="field-label" id="times-label">მიღების საათები</div>
+      <div class="times-list" id="m-times" aria-labelledby="times-label"></div>
+      <div class="add-time-row">
+        <input type="text" id="m-new-time" value="08:00" aria-label="ახალი მიღების საათი">
+        <button class="btn btn-secondary" id="m-add-time" type="button">საათის დამატება</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="m-save" type="button">შენახვა</button>
+        <button class="btn btn-danger" id="m-delete" type="button" hidden>წაშლა</button>
+        <button class="btn btn-secondary" id="m-cancel" type="button">გაუქმება</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reset-confirmation" aria-hidden="true">
+    <section class="modal confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="reset-confirmation-title" aria-describedby="reset-confirmation-message">
+      <h2 id="reset-confirmation-title">საწყისი გრაფიკის აღდგენა</h2>
+      <p id="reset-confirmation-message">გსურთ საწყისი გრაფიკის აღდგენა? თქვენი მიმდინარე ცვლილებები შეიცვლება. ცვლილება ამ მოწყობილობაზე შეინახება. სერვერზე ასატვირთად დააჭირეთ „გრაფიკის შენახვას“.</p>
+      <div class="btn-row confirmation-actions">
+        <button class="btn btn-secondary" id="cancel-reset-defaults" type="button">გაუქმება</button>
+        <button class="btn btn-danger" id="confirm-reset-defaults" type="button">აღდგენა</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="clear-day-confirmation" aria-hidden="true">
+    <section class="modal confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="clear-day-confirmation-title" aria-describedby="clear-day-confirmation-message">
+      <h2 id="clear-day-confirmation-title">დღის გასუფთავება</h2>
+      <p id="clear-day-confirmation-message">გსურთ არჩეული დღის მიღების ისტორიის წაშლა? ეს მოქმედება შეუქცევადია.</p>
+      <div class="btn-row confirmation-actions">
+        <button class="btn btn-secondary" id="cancel-clear-day" type="button">გაუქმება</button>
+        <button class="btn btn-danger" id="confirm-clear-day" type="button">ისტორიის წაშლა</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="calendar-overlay" id="georgian-calendar" aria-hidden="true">
+    <section class="calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="calendar-month" aria-label="თარიღის კალენდარი">
+      <div class="calendar-header">
+        <button class="calendar-nav" id="calendar-previous" type="button" aria-label="წინა თვე">‹</button>
+        <strong id="calendar-month"></strong>
+        <button class="calendar-nav" id="calendar-next" type="button" aria-label="შემდეგი თვე">›</button>
+      </div>
+      <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="კალენდრის დღეები"></div>
+    </section>
+  </div>
+
+  <div class="time-overlay" id="time-picker" aria-hidden="true">
+    <section class="time-dialog" role="dialog" aria-modal="true" aria-labelledby="time-picker-title">
+      <h2 id="time-picker-title">დროის არჩევა</h2>
+      <div class="time-selectors">
+        <select id="time-hour" aria-label="საათი"></select>
+        <span class="time-separator" aria-hidden="true">:</span>
+        <select id="time-minute" aria-label="წუთი"></select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="cancel-time" type="button">გაუქმება</button>
+        <button class="btn btn-primary" id="confirm-time" type="button">არჩევა</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
