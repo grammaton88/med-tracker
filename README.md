@@ -308,3 +308,7 @@ Vercel runs `npm run build` during deployment and serves the `public` output dir
 ## Medical disclaimer
 
 This app is a personal organization aid, not a clinical decision tool, medication instruction source, or substitute for professional care. Confirm all medication names, doses, schedules, and course dates with a qualified healthcare professional.
+
+---
+
+Maintained by Mikheil Kakabadze.
